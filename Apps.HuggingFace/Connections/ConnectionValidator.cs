@@ -14,7 +14,7 @@ public class ConnectionValidator : IConnectionValidator
 
         try
         {
-            var request = new HuggingFaceRequest("/api/whoami-v2", Method.Get, authenticationCredentialsProviders);
+            var request = new HuggingFaceRequest("/whoami-v2", Method.Get, authenticationCredentialsProviders);
             await client.ExecuteWithHandling(request);
             return new ConnectionValidationResponse
             {

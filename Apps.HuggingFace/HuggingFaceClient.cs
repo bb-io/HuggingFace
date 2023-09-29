@@ -10,7 +10,7 @@ public class HuggingFaceClient : RestClient
         : base(new RestClientOptions { ThrowOnAnyError = false, BaseUrl = GetBaseUrl(apiType) }) { }
     
     private static Uri GetBaseUrl(ApiType apiType) => apiType == ApiType.HubApi 
-        ? new("https://huggingface.co") 
+        ? new("https://huggingface.co/api") 
         : new("https://api-inference.huggingface.co");
     
     public async Task<T> ExecuteWithHandling<T>(RestRequest request)
