@@ -7,7 +7,7 @@ namespace Apps.HuggingFace;
 public class HuggingFaceClient : RestClient
 {
     public HuggingFaceClient(ApiType apiType)
-        : base(new RestClientOptions { ThrowOnAnyError = false, BaseUrl = GetBaseUrl(apiType) }) { }
+        : base(new RestClientOptions { ThrowOnAnyError = false, BaseUrl = GetBaseUrl(apiType), MaxTimeout = 300000 }) { }
     
     private static Uri GetBaseUrl(ApiType apiType) => apiType == ApiType.HubApi 
         ? new("https://huggingface.co/api") 
@@ -34,7 +34,7 @@ public class HuggingFaceClient : RestClient
         var error = DeserializeContent<ErrorDto>(responseContent);
         
         if (error != null)
-            return new(error.Message);
+            return new(error.Error);
 
         return new(responseContent);
     }

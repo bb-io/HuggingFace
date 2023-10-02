@@ -1,3 +1,3 @@
 ﻿namespace Apps.HuggingFace.Dtos;
 
-public record ErrorDto(string Message);
+public record ErrorDto(string Error);

@@ -1,13 +1,13 @@
-﻿using Apps.HuggingFace.DataSourceHandlers.Models;
+﻿using Apps.HuggingFace.DataSourceHandlers.Models.Text;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 
-namespace Apps.HuggingFace.Models.Requests;
+namespace Apps.HuggingFace.Models.Text.Requests;
 
-public record TranslateTextRequest
+public record ClassifyTextRequest
 {
     [Display("Model")] 
-    [DataSource(typeof(TranslationModelDataSourceHandler))] 
+    [DataSource(typeof(TextClassificationModelDataSourceHandler))] 
     public string ModelId { get; init; }
     
     public string Text { get; init; }

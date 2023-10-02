@@ -4,11 +4,11 @@ using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using RestSharp;
 
-namespace Apps.HuggingFace.DataSourceHandlers.Models;
+namespace Apps.HuggingFace.DataSourceHandlers.Models.Text;
 
-public class SummarizationModelDataSourceHandler : BaseInvocable, IAsyncDataSourceHandler
+public class SemanticSimilarityModelDataSourceHandler : BaseInvocable, IAsyncDataSourceHandler
 {
-    public SummarizationModelDataSourceHandler(InvocationContext invocationContext) : base(invocationContext)
+    public SemanticSimilarityModelDataSourceHandler(InvocationContext invocationContext) : base(invocationContext)
     {
     }
 
@@ -16,10 +16,10 @@ public class SummarizationModelDataSourceHandler : BaseInvocable, IAsyncDataSour
         CancellationToken cancellationToken)
     {
         var client = new HuggingFaceClient(ApiType.HubApi);
-        var endpoint = $"/models?search={context.SearchString ?? ""}&sort=downloads&direction=-1&filter=summarization&limit=30";
+        var endpoint = $"/models?search={context.SearchString ?? ""}&sort=likes&direction=-1&filter=sentence-similarity&limit=30";
         var request = new HuggingFaceRequest(endpoint, Method.Get, InvocationContext.AuthenticationCredentialsProviders);
         var models = await client.ExecuteWithHandling<IEnumerable<ModelDto>>(request);
-        return models.Where(model => model.PipelineTag == "summarization")
+        return models.Where(model => model.PipelineTag == "sentence-similarity")
             .ToDictionary(model => model.Id, model => model.Id);
     }
 }
