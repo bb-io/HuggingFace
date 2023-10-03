@@ -55,6 +55,8 @@ Hugging Face provides a tool for training ML models which can be used to better 
 - **Create transcription** generates a transcription given an audio file (Flac, Wav, Mp3, Ogg etc.).
 - **Classify audio** performs audio classification. Possible labels vary depending on model used.
 
+Note: almost all actions have optional input parameter _Use cache_. By default, it is set to true, meaning that if model has already seen the same input, it will return previously obtained result. You can use it to make sure you get deterministic results. If you don't want the model to return exactly the same results for queries it has seen before, you can set _Use cache_ to _false_.
+
 ## Missing features
 
 In the future we can add actions for:
