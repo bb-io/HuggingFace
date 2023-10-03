@@ -47,6 +47,7 @@ Hugging Face provides a tool for training ML models which can be used to better 
 - **Calculate semantic similarity** calculates semantic similarity between two texts and returns similarity score in the range from 0 to 1.
 - **Generate text** continues text from a prompt.
 - **Chat** performs conversational task. To give a context, you can specify past user inputs and previously generated responses which should have the same lengths.
+- **Generate image** generates image given text description of image.
 - **Generate embedding** generates text embedding - a list of floating point numbers that captures semantic information about the text that it represents. Embeddings can be used to store data in vector databases (like Pinecone).
 
 ### Audio

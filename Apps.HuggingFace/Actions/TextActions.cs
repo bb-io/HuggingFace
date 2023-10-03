@@ -6,9 +6,11 @@ using Apps.HuggingFace.Models.Text.Responses;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
+using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Newtonsoft.Json;
 using RestSharp;
+using File = Blackbird.Applications.Sdk.Common.Files.File;
 
 namespace Apps.HuggingFace.Actions;
 
@@ -272,6 +274,30 @@ public class TextActions : BaseInvocable
         
         var response = await client.ExecuteWithHandling<ChatResponse>(request);
         return response;
+    }
+    
+    [Action("Generate image", Description = "Generate image given text description of image.")]
+    public async Task<GenerateImageResponse> GenerateImage([ActionParameter] GenerateImageRequest input)
+    {
+        var client = new HuggingFaceClient(ApiType.InferenceApi);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        request.AddJsonBody(new
+        {
+            inputs = input.ImageDescription,
+            options = new
+            {
+                use_cache = input.UseCache ?? true,
+                wait_for_model = true
+            }
+        });
+        
+        var response = await client.ExecuteWithHandling(request);
+        var extension = MimeTypes.GetMimeTypeExtensions(response.ContentType).Last();
+        return new GenerateImageResponse(new File(response.RawBytes)
+        {
+            ContentType = response.ContentType,
+            Name = $"{input.OutputImageName ?? input.ImageDescription}.{extension}"
+        });
     }
 
     [Action("Generate embedding", Description = "Generate text embedding. An embedding is a list of floating point " +
