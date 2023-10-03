@@ -1,3 +1,9 @@
-﻿namespace Apps.HuggingFace.Dtos;
+﻿using Newtonsoft.Json;
 
-public record ErrorDto(string Error);
+namespace Apps.HuggingFace.Dtos;
+
+public record ErrorDto(string Error)
+{
+    [JsonProperty("estimated_time")]
+    public double? EstimatedTime { get; init; }
+}

@@ -1,4 +1,5 @@
-﻿using Apps.HuggingFace.Dtos;
+﻿using System.Net;
+using Apps.HuggingFace.Dtos;
 using Newtonsoft.Json;
 using RestSharp;
 
@@ -22,6 +23,17 @@ public class HuggingFaceClient : RestClient
     public async Task<RestResponse> ExecuteWithHandling(RestRequest request)
     {
         var response = await ExecuteAsync(request);
+        
+        if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+        { 
+            var error = DeserializeContent<ErrorDto>(response.Content);
+
+            if (error.EstimatedTime is not null)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(error.EstimatedTime.Value + error.EstimatedTime.Value * 0.05));
+                response = await ExecuteAsync(request);
+            }
+        }
         
         if (response.IsSuccessful)
             return response;
