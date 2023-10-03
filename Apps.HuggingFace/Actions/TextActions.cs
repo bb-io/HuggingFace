@@ -110,9 +110,9 @@ public class TextActions : BaseInvocable
         return response.First();
     }
     
-    [Action("Fill mask", Description = "Fills in a hole with a missing word. Use [MASK] token to specify the place to " +
-                                       "be filled. Mask name can differ depending on model used. There can be more than " +
-                                       "one [MASK] in the text. Text with filled holes is returned.")]
+    [Action("Fill mask", Description = "Fills in a hole with a missing word. Use mask token to specify the place to " +
+                                       "be filled. Mask token can differ depending on model used. There can be more than " +
+                                       "one mask token in the text. Text with filled holes is returned.")]
     public async Task<FillMaskResponse> FillMask([ActionParameter] FillMaskRequest input)
     {
         var inferenceClient = new HuggingFaceClient(ApiType.InferenceApi);
