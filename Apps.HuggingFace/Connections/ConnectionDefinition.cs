@@ -14,7 +14,7 @@ public class ConnectionDefinition : IConnectionDefinition
             ConnectionUsage = ConnectionUsage.Actions,
             ConnectionProperties = new List<ConnectionProperty>
             {
-                new("API token")
+                new("API token") { Sensitive = true }
             }
         }
     };
