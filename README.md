@@ -21,7 +21,7 @@ Before you can connect you need to:
 
 ### Training or finetuning a model using custom data
 
-Hugging Face provides a tool for training ML models which can be used to better accommodate your needs. You can read more about AutoTrain [here](https://huggingface.co/docs/autotrain/index). Once the model is trained on your data, you can use it via Blackbird just like any other model. 
+Hugging Face provides a tool for training ML models which can be used to better accommodate your needs. You can read more about AutoTrain [here](https://huggingface.co/docs/autotrain/index). Once the model is trained on your data, you can use it via Blackbird just like any other model.
 
 ## Connecting
 
@@ -40,6 +40,7 @@ Hugging Face provides a tool for training ML models which can be used to better 
 
 - **Summarize text** summarizes longer text into shorter text.
 - **Answer question** answers the question given a context. Context is a text where the answer could be found.
+- **Answer question with table** answers the question given the excel table with .xlsx extension where the answer could be found.
 - **Classify text** performs text classification. Possible labels vary depending on model used. Can be useful for sentiment analysis.
 - **Classify text according to candidate labels** performs text classification and, unlike **Classify text** action, uses the provided labels for prediction.
 - **Translate text**. Source and target language depend on model used.
@@ -47,7 +48,7 @@ Hugging Face provides a tool for training ML models which can be used to better 
 - **Calculate semantic similarity** calculates semantic similarity between two texts and returns similarity score in the range from 0 to 1.
 - **Generate text** continues text from a prompt.
 - **Chat** performs conversational task. To give a context, you can specify past user inputs and previously generated responses which should have the same lengths.
-- **Generate image** generates image given text description of image.
+- **Classify tokens** performs token classification. Usually used for keywords extraction or grammatical sentence parsing. You can check model usage and entity groups (tags) on respective model's [Hugging face page](https://huggingface.co/models?pipeline_tag=token-classification&sort=trending). 
 - **Generate embedding** generates text embedding - a list of floating point numbers that captures semantic information about the text that it represents. Embeddings can be used to store data in vector databases (like Pinecone).
 
 ### Audio
@@ -55,13 +56,19 @@ Hugging Face provides a tool for training ML models which can be used to better 
 - **Create transcription** generates a transcription given an audio file (Flac, Wav, Mp3, Ogg etc.).
 - **Classify audio** performs audio classification. Possible labels vary depending on model used.
 
-Note: almost all actions have optional input parameter _Use cache_. By default, it is set to true, meaning that if model has already seen the same input, it will return previously obtained result. You can use it to make sure you get deterministic results. If you don't want the model to return exactly the same results for queries it has seen before, you can set _Use cache_ to _false_.
+### Image
+
+- **Generate image** generates image given text description of image.
+- **Classify image** performs image classification. Possible labels vary depending on model used.
+- **Convert image to text** generates text description for given image.
+- **Answer question based on image** performs visual question answering based on given image.
+
+Note: many actions have optional input parameter _Use cache_. By default, it is set to true, meaning that if model has already seen the same input, it will return previously obtained result. You can use it to make sure you get deterministic results. If you don't want the model to return exactly the same results for queries it has seen before, you can set _Use cache_ to _false_.
 
 ## Missing features
 
 In the future we can add actions for:
 
-- Image classification
 - Image detection
 - Image segmentation
 

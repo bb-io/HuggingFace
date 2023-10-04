@@ -6,11 +6,11 @@ using Apps.HuggingFace.Models.Text.Responses;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
-using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Newtonsoft.Json;
 using RestSharp;
-using File = Blackbird.Applications.Sdk.Common.Files.File;
 
 namespace Apps.HuggingFace.Actions;
 
@@ -53,7 +53,7 @@ public class TextActions : BaseInvocable
     }
 
     [Action("Answer question", Description = "Answer the question given the context.")]
-    public async Task<AnswerQuestionResponse> AnswerQuestion([ActionParameter] AnswerQuestionRequest input)
+    public async Task<AnswerDto> AnswerQuestion([ActionParameter] AnswerQuestionRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
         var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
@@ -66,11 +66,42 @@ public class TextActions : BaseInvocable
             },
             options = new
             {
+                use_cache = input.UseCache ?? true,
                 wait_for_model = true
             }
         });
         
-        var response = await client.ExecuteWithHandling<AnswerQuestionResponse>(request);
+        var response = await client.ExecuteWithHandling<AnswerDto>(request);
+        return response;
+    }
+    
+    [Action("Answer question with table", Description = "Answer the question given the excel table with .xlsx extension " +
+                                                        "where the answer could be found.")]
+    public async Task<AnswerQuestionWithTableResponse> AnswerQuestionWithTable(
+        [ActionParameter] AnswerQuestionWithTableRequest input)
+    {
+        var extenstion = Path.GetExtension(input.ExcelTable.Name);
+        if (extenstion != ".xlsx")
+            throw new Exception("Please provide excel table with .xlsx extension");
+
+        var client = new HuggingFaceClient(ApiType.InferenceApi);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var tableAsDictionary = ReadExcelFileToDictionary(input.ExcelTable.Bytes);
+        request.AddJsonBody(new
+        {
+            inputs = new
+            {
+                query = input.Question,
+                table = tableAsDictionary
+            },
+            options = new
+            {
+                use_cache = input.UseCache ?? true,
+                wait_for_model = true
+            }
+        });
+        
+        var response = await client.ExecuteWithHandling<AnswerQuestionWithTableResponse>(request);
         return response;
     }
     
@@ -276,14 +307,15 @@ public class TextActions : BaseInvocable
         return response;
     }
     
-    [Action("Generate image", Description = "Generate image given text description of image.")]
-    public async Task<GenerateImageResponse> GenerateImage([ActionParameter] GenerateImageRequest input)
+    [Action("Classify tokens", Description = "Perform tokens classification. Usually used for keywords extraction or " +
+                                             "grammatical sentence parsing.")]
+    public async Task<ClassifyTokensResponse> ClassifyTokens([ActionParameter] ClassifyTokensRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
         var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
         request.AddJsonBody(new
         {
-            inputs = input.ImageDescription,
+            inputs = input.Text,
             options = new
             {
                 use_cache = input.UseCache ?? true,
@@ -291,13 +323,8 @@ public class TextActions : BaseInvocable
             }
         });
         
-        var response = await client.ExecuteWithHandling(request);
-        var extension = MimeTypes.GetMimeTypeExtensions(response.ContentType).Last();
-        return new GenerateImageResponse(new File(response.RawBytes)
-        {
-            ContentType = response.ContentType,
-            Name = $"{input.OutputImageName ?? input.ImageDescription}.{extension}"
-        });
+        var response = await client.ExecuteWithHandling<IEnumerable<TokenDto>>(request);
+        return new ClassifyTokensResponse(response);
     }
 
     [Action("Generate embedding", Description = "Generate text embedding. An embedding is a list of floating point " +
@@ -328,5 +355,61 @@ public class TextActions : BaseInvocable
             var flattenedEmbedding = response.First().SelectMany(e => e);
             return new GenerateEmbeddingResponse(flattenedEmbedding);
         }
+    }
+    
+    private static Dictionary<string, List<string>> ReadExcelFileToDictionary(byte[] excelFile)
+    {
+        static string GetCellValue(WorkbookPart workbookPart, Cell cell)
+        {
+            var stringTablePart = workbookPart.SharedStringTablePart;
+
+            if (cell.DataType != null && cell.DataType.Value == CellValues.SharedString)
+            {
+                var index = int.Parse(cell.InnerText);
+                return stringTablePart.SharedStringTable.Elements<SharedStringItem>().ElementAt(index).InnerText;
+            }
+        
+            return cell.InnerText;
+        }
+        
+        var result = new Dictionary<string, List<string>>();
+
+        using (var stream = new MemoryStream(excelFile))
+        using (var spreadsheetDocument = SpreadsheetDocument.Open(stream, false))
+        {
+            var workbookPart = spreadsheetDocument.WorkbookPart;
+            var worksheetPart = workbookPart.WorksheetParts.First();
+            var sheetData = worksheetPart.Worksheet.Elements<SheetData>().First();
+            var headerRow = sheetData.Elements<Row>().FirstOrDefault();
+
+            if (headerRow == null)
+                throw new Exception("The Excel table does not have a header row.");
+
+            foreach (var cell in headerRow.Elements<Cell>())
+            {
+                var columnHeader = GetCellValue(workbookPart, cell);
+
+                if (!result.ContainsKey(columnHeader))
+                    result[columnHeader] = new List<string>();
+            }
+
+            foreach (var row in sheetData.Elements<Row>().Skip(1)) // Skip the header row
+            {
+                var columnIndex = 0;
+
+                foreach (var cell in row.Elements<Cell>())
+                {
+                    var columnHeader = GetCellValue(workbookPart, headerRow.Elements<Cell>().ElementAt(columnIndex));
+                    var cellValue = GetCellValue(workbookPart, cell);
+
+                    if (result.ContainsKey(columnHeader))
+                        result[columnHeader].Add(cellValue);
+
+                    columnIndex++;
+                }
+            }
+        }
+
+        return result;
     }
 }

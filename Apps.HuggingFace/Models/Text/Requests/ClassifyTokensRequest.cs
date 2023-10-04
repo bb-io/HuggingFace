@@ -4,16 +4,14 @@ using Blackbird.Applications.Sdk.Common.Dynamic;
 
 namespace Apps.HuggingFace.Models.Text.Requests;
 
-public record AnswerQuestionRequest
+public record ClassifyTokensRequest
 {
     [Display("Model")] 
-    [DataSource(typeof(QuestionAnsweringModelDataSourceHandler))] 
+    [DataSource(typeof(TokenClassificationModelDataSourceHandler))]
     public string ModelId { get; init; }
     
-    public string Question { get; init; }
+    public string Text { get; init; }
     
-    public string Context { get; init; }
-    
-    [Display("Use cache")]
+    [Display("Use cache")] 
     public bool? UseCache { get; init; }
 }

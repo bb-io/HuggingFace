@@ -4,7 +4,7 @@ using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using RestSharp;
 
-namespace Apps.HuggingFace.DataSourceHandlers.Models.Text;
+namespace Apps.HuggingFace.DataSourceHandlers.Models.Image;
 
 public class TextToImageModelDataSourceHandler : BaseInvocable, IAsyncDataSourceHandler
 {

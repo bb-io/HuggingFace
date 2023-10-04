@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <PackageReference Include="Blackbird.Applications.Sdk.Common" Version="2.2.0-alpha3" />
+      <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
       <PackageReference Include="MimeTypes" Version="2.4.1">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
