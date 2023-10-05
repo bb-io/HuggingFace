@@ -43,7 +43,7 @@ Hugging Face provides a tool for training ML models which can be used to better 
 - **Answer question with table** answers the question given the excel table with .xlsx extension where the answer could be found.
 - **Classify text** performs text classification. Possible labels vary depending on model used. Can be useful for sentiment analysis.
 - **Classify text according to candidate labels** performs text classification and, unlike **Classify text** action, uses the provided labels for prediction.
-- **Translate text**. Source and target language depend on model used.
+- **Translate text**. Source and target language cannot be specified. It is recommended to use models trained to translate between one language pair. For example, take a look at [Helsinki-NLP models](https://huggingface.co/Helsinki-NLP).
 - **Fill mask** fills in a hole or holes with missing words and returns text with filled holes. Use mask token to specify the place to be filled. Mask token can differ depending on model used, but the most commonly used tokens are [MASK] or &lt;mask>. You should check the mask token used by specific model on its [Hugging Face page](https://huggingface.co/models?pipeline_tag=fill-mask&sort=trending).
 - **Calculate semantic similarity** calculates semantic similarity between two texts and returns similarity score in the range from 0 to 1.
 - **Generate text** continues text from a prompt.
