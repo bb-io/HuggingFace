@@ -1,4 +1,5 @@
 ﻿using Apps.HuggingFace.Dtos;
+using Apps.HuggingFace.ImageHelpers;
 using Apps.HuggingFace.Models.Image.Requests;
 using Apps.HuggingFace.Models.Image.Responses;
 using Blackbird.Applications.Sdk.Common;
@@ -80,5 +81,62 @@ public class ImageActions : BaseInvocable
         
         var response = await client.ExecuteWithHandling<IEnumerable<AnswerDto>>(request);
         return response.MaxBy(answer => answer.Score);
+    }
+    
+    [Action("Detect objects on image", Description = "Perform object detection.")]
+    public async Task<DetectObjectsResponse> DetectObjects([ActionParameter] DetectObjectsRequest input)
+    {
+        var client = new HuggingFaceClient(ApiType.InferenceApi);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        request.AddParameter(input.Image.ContentType, input.Image.Bytes, ParameterType.RequestBody);
+        var detectedObjects = await client.ExecuteWithHandling<IEnumerable<DetectedObjectDto>>(request);
+        var image = input.Image.DrawBoundingBoxes(detectedObjects, input.DrawLabels ?? false);
+        var imageFilename =
+            $"{input.OutputImageFilename ?? Path.GetFileNameWithoutExtension(input.Image.Name) + "_with_objects_detected"}" +
+            $"{Path.GetExtension(input.Image.Name)}";
+        
+        return new DetectObjectsResponse
+        {
+            DetectedObjects = detectedObjects, 
+            OutputImage = new File(image)
+            {
+                ContentType = input.Image.ContentType,
+                Name = imageFilename
+            }
+        };
+    }
+    
+    [Action("Detect objects on image with specified label", Description = "Detect objects on image that have the label " +
+                                                                          "specified.")]
+    public async Task<DetectObjectsWithLabelResponse> DetectObjectsWithLabel(
+        [ActionParameter] DetectObjectsWithLabelRequest input)
+    {
+        var client = new HuggingFaceClient(ApiType.InferenceApi);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        request.AddParameter(input.Image.ContentType, input.Image.Bytes, ParameterType.RequestBody);
+        var detectedObjects = await client.ExecuteWithHandling<IEnumerable<DetectedObjectDto>>(request);
+        var targetDetectedObjects = detectedObjects.Where(obj => obj.Label.Equals(input.Label, StringComparison.OrdinalIgnoreCase));
+    
+        if (!targetDetectedObjects.Any())
+            return new DetectObjectsWithLabelResponse
+            {
+                ObjectsDetected = false,
+                OutputImage = input.Image
+            };
+        
+        var image = input.Image.DrawBoundingBoxes(targetDetectedObjects, false);
+        var imageFilename = 
+            $"{input.OutputImageFilename ?? Path.GetFileNameWithoutExtension(input.Image.Name) + "_with_objects_detected"}" +
+            $"{Path.GetExtension(input.Image.Name)}";
+        
+        return new DetectObjectsWithLabelResponse
+        {
+            ObjectsDetected = true,
+            OutputImage = new File(image)
+            {
+                ContentType = input.Image.ContentType,
+                Name = imageFilename
+            }
+        };
     }
 }
