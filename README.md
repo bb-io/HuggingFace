@@ -44,7 +44,7 @@ Hugging Face provides a tool for training ML models which can be used to better 
 - **Classify text** performs text classification. Possible labels vary depending on model used. Can be useful for sentiment analysis.
 - **Classify text according to candidate labels** performs text classification and, unlike **Classify text** action, uses the provided labels for prediction.
 - **Translate text**. Source and target language depend on model used.
-- **Fill mask** fills in a hole or holes with missing words and returns text with filled holes. Use mask token to specify the place to be filled. Mask token can differ depending on model used, but the most commonly used tokens are [MASK] or <mask>. You should check the mask token used by specific model on its [Hugging Face page](https://huggingface.co/models?pipeline_tag=fill-mask&sort=trending).
+- **Fill mask** fills in a hole or holes with missing words and returns text with filled holes. Use mask token to specify the place to be filled. Mask token can differ depending on model used, but the most commonly used tokens are [MASK] or &lt;mask>. You should check the mask token used by specific model on its [Hugging Face page](https://huggingface.co/models?pipeline_tag=fill-mask&sort=trending).
 - **Calculate semantic similarity** calculates semantic similarity between two texts and returns similarity score in the range from 0 to 1.
 - **Generate text** continues text from a prompt.
 - **Chat** performs conversational task. To give a context, you can specify past user inputs and previously generated responses which should have the same lengths.
