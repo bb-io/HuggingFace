@@ -1,12 +1,14 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
+using Apps.HuggingFace.Actions.Base;
 using Apps.HuggingFace.Dtos;
 using Apps.HuggingFace.Models.Text.Requests;
 using Apps.HuggingFace.Models.Text.Responses;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
-using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
+using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Newtonsoft.Json;
@@ -15,20 +17,18 @@ using RestSharp;
 namespace Apps.HuggingFace.Actions;
 
 [ActionList]
-public class TextActions : BaseInvocable
+public class TextActions : BaseActions
 {
-    private readonly IEnumerable<AuthenticationCredentialsProvider> _authenticationCredentialsProviders;
-
-    public TextActions(InvocationContext invocationContext) : base(invocationContext)
+    public TextActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) 
+        : base(invocationContext, fileManagementClient)
     {
-        _authenticationCredentialsProviders = invocationContext.AuthenticationCredentialsProviders;
     }
     
     [Action("Summarize text", Description = "Summarize the text provided.")]
     public async Task<SummarizeTextResponse> SummarizeText([ActionParameter] SummarizeTextRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         request.AddJsonBody(new
         {
             inputs = input.Text,
@@ -56,7 +56,7 @@ public class TextActions : BaseInvocable
     public async Task<AnswerDto> AnswerQuestion([ActionParameter] AnswerQuestionRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         request.AddJsonBody(new
         {
             inputs = new
@@ -83,10 +83,11 @@ public class TextActions : BaseInvocable
         var extenstion = Path.GetExtension(input.ExcelTable.Name);
         if (extenstion != ".xlsx")
             throw new Exception("Please provide excel table with .xlsx extension");
-
+        
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
-        var tableAsDictionary = ReadExcelFileToDictionary(input.ExcelTable.Bytes);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
+        var excelTable = await ConvertToByteArray(input.ExcelTable);
+        var tableAsDictionary = ReadExcelFileToDictionary(excelTable);
         request.AddJsonBody(new
         {
             inputs = new
@@ -109,7 +110,7 @@ public class TextActions : BaseInvocable
     public async Task<LabelDto> ClassifyText([ActionParameter] ClassifyTextRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         request.AddJsonBody(new
         {
             inputs = input.Text,
@@ -128,7 +129,7 @@ public class TextActions : BaseInvocable
     public async Task<TranslateTextResponse> TranslateText([ActionParameter] TranslateTextRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         request.AddJsonBody(new
         {
             inputs = input.Text,
@@ -149,7 +150,7 @@ public class TextActions : BaseInvocable
     public async Task<FillMaskResponse> FillMask([ActionParameter] FillMaskRequest input)
     {
         var inferenceClient = new HuggingFaceClient(ApiType.InferenceApi);
-        var inferenceRequest = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var inferenceRequest = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         inferenceRequest.AddJsonBody(new
         {
             inputs = input.Text,
@@ -162,7 +163,7 @@ public class TextActions : BaseInvocable
         
         var hubClient = new HuggingFaceClient(ApiType.HubApi);
         var getModelRequest = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Get, 
-            _authenticationCredentialsProviders);
+            AuthenticationCredentialsProviders);
         var maskToken = (await hubClient.ExecuteWithHandling<MaskTokenDto>(getModelRequest)).MaskToken;
         
         var masks = Regex.Matches(input.Text, Regex.Escape(maskToken));
@@ -202,7 +203,7 @@ public class TextActions : BaseInvocable
         [ActionParameter] CalculateSemanticSimilarityRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         request.AddJsonBody(new
         {
             source_sentence = input.FirstText,
@@ -222,7 +223,7 @@ public class TextActions : BaseInvocable
     public async Task<GenerateTextResponse> GenerateText([ActionParameter] GenerateTextRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         request.AddJsonBody(new
         {
             inputs = input.Prompt,
@@ -250,7 +251,7 @@ public class TextActions : BaseInvocable
     public async Task<LabelDto> ClassifyTextWithLabels([ActionParameter] ClassifyTextWithLabelsRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         request.AddJsonBody(new
         {
             inputs = input.Text,
@@ -281,7 +282,7 @@ public class TextActions : BaseInvocable
             throw new Exception("Past user inputs and previously generated responses should be of the same length.");
         
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         request.AddJsonBody(new
         {
             inputs = input.Prompt,
@@ -312,7 +313,7 @@ public class TextActions : BaseInvocable
     public async Task<ClassifyTokensResponse> ClassifyTokens([ActionParameter] ClassifyTokensRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         request.AddJsonBody(new
         {
             inputs = input.Text,
@@ -333,7 +334,7 @@ public class TextActions : BaseInvocable
     public async Task<GenerateEmbeddingResponse> GenerateEmbedding([ActionParameter] GenerateEmbeddingRequest input)
     {
         var client = new HuggingFaceClient(ApiType.InferenceApi);
-        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, _authenticationCredentialsProviders);
+        var request = new HuggingFaceRequest($"/models/{input.ModelId}", Method.Post, AuthenticationCredentialsProviders);
         request.AddJsonBody(new
         {
             inputs = input.Text,
