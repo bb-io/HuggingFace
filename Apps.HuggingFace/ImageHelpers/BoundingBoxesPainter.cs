@@ -1,16 +1,15 @@
 ﻿using System.Drawing;
 using System.Drawing.Imaging;
 using Apps.HuggingFace.Dtos;
-using File = Blackbird.Applications.Sdk.Common.Files.File;
 
 namespace Apps.HuggingFace.ImageHelpers;
 
 public static class BoundingBoxesPainter
 {
-    public static byte[] DrawBoundingBoxes(this File imageFile, IEnumerable<DetectedObjectDto> detectedObjects, 
-        bool drawLabels)
+    public static byte[] DrawBoundingBoxes(this byte[] imageBytes, string contentType, 
+        IEnumerable<DetectedObjectDto> detectedObjects, bool drawLabels)
     {
-        var image = new Bitmap(new MemoryStream(imageFile.Bytes));
+        var image = new Bitmap(new MemoryStream(imageBytes));
         
         using (var graphics = Graphics.FromImage(image))
         {
@@ -37,7 +36,7 @@ public static class BoundingBoxesPainter
         
         using (var memoryStream = new MemoryStream())
         {
-            var imageFormat = GetImageFormatFromMimeType(imageFile.ContentType);
+            var imageFormat = GetImageFormatFromMimeType(contentType);
             image.Save(memoryStream, imageFormat);
             return memoryStream.ToArray();
         }

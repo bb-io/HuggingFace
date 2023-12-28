@@ -1,13 +1,6 @@
-﻿using File = Blackbird.Applications.Sdk.Common.Files.File;
+﻿namespace Apps.HuggingFace.Models.Image.Responses;
 
-using Blackbird.Applications.Sdk.Common;
-
-namespace Apps.HuggingFace.Models.Image.Responses;
-
-public record DetectObjectsWithLabelResponse
+public record DetectObjectsWithLabelResponse : ImageFileWrapper
 {
     public bool ObjectsDetected { get; init; }
-    
-    [Display("Output image")]
-    public File OutputImage { get; init; }
 }
