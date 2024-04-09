@@ -1,9 +1,20 @@
 ﻿using Blackbird.Applications.Sdk.Common;
+using Blackbird.Applications.Sdk.Common.Metadata;
 
 namespace Apps.HuggingFace;
 
-public class HuggingFaceApplication : IApplication
+public class HuggingFaceApplication : IApplication, ICategoryProvider
 {
+    public IEnumerable<ApplicationCategory> Categories
+    {
+        get =>
+        [
+            ApplicationCategory.ArtificialIntelligence, ApplicationCategory.MachineTranslationAndMtqe,
+            ApplicationCategory.Multimedia
+        ];
+        set { }
+    }
+
     public string Name
     {
         get => "Hugging Face";
