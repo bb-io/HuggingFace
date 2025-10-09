@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Apps.HuggingFace.Dtos;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using Newtonsoft.Json;
 using RestSharp;
 
@@ -46,9 +47,9 @@ public class HuggingFaceClient : RestClient
         var error = DeserializeContent<ErrorDto>(responseContent);
         
         if (error != null)
-            return new(error.Error);
+            throw new PluginApplicationException(error.Error);
 
-        return new(responseContent);
+        throw new PluginApplicationException(responseContent);
     }
     
     private static T DeserializeContent<T>(string content)

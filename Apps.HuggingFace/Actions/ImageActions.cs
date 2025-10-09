@@ -12,7 +12,7 @@ using RestSharp;
 
 namespace Apps.HuggingFace.Actions;
 
-[ActionList]
+[ActionList("Image")]
 public class ImageActions : BaseActions
 {
     public ImageActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) 
