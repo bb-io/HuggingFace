@@ -10,7 +10,7 @@ using RestSharp;
 
 namespace Apps.HuggingFace.Actions;
 
-[ActionList]
+[ActionList("Audio")]
 public class AudioActions : BaseActions
 {
     public AudioActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) 

@@ -16,7 +16,7 @@ using RestSharp;
 
 namespace Apps.HuggingFace.Actions;
 
-[ActionList]
+[ActionList("Text")]
 public class TextActions : BaseActions
 {
     public TextActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) 
